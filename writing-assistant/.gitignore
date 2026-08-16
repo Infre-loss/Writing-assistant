@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+.npm-cache/
+.debug-userdata/
+.test-profile/
+build-icon.png
+*.log

@@ -1,0 +1,51 @@
+{
+  "name": "writing-assistant",
+  "version": "0.1.0",
+  "description": "辅助写作软件：大纲 / 进度 / AI 润色（数据本地优先）",
+  "author": "写作助手团队",
+  "main": "main/main.js",
+  "private": true,
+  "scripts": {
+    "build:renderer": "vite build",
+    "start": "npm run build:renderer && electron .",
+    "pack": "npm run build:renderer && electron-builder --win portable",
+    "pack:installer": "npm run build:renderer && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.writingassistant.app",
+    "productName": "写作助手",
+    "files": [
+      "dist/**/*",
+      "main/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "写作助手"
+    }
+  },
+  "dependencies": {
+    "playwright-core": "^1.62.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.5",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3",
+    "vite": "^8.2.1"
+  }
+}

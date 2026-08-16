@@ -1,0 +1,18 @@
+# ===== 写作助手项目 Git 仓库：忽略文件 =====
+# 只跟踪"有意义的进度"（文档 + 源码），排除大文件和临时文件
+
+# 依赖缓存
+.npm-cache/
+.electron-cache/
+
+# 程序依赖与构建产物
+writing-assistant/node_modules/
+writing-assistant/dist/
+writing-assistant/release/
+
+# 临时文件
+*.log
+writing-assistant/shot.*
+writing-assistant/.debug-userdata/
+writing-assistant/.test-profile/
+writing-assistant/build-icon.png
