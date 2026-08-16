@@ -24,8 +24,8 @@ choice /C YN /M "Continue? (Y=Yes N=No)"
 if errorlevel 2 exit /b
 
 "%GIT%" reset --hard HEAD
-"%GIT%" clean -fd
 if %errorlevel%==0 (
+  "%GIT%" clean -fd
   echo.
   echo [OK] Restored to the last backup.
 ) else (
