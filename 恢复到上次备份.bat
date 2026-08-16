@@ -1,6 +1,5 @@
 @echo off
-chcp 65001 >nul
-title 写作助手项目 - 恢复到上次备份
+title Writing Assistant Project - Restore Last Backup
 set "ROOT=%~dp0"
 set "GIT="
 
@@ -10,7 +9,7 @@ if not defined GIT if exist "C:\Program Files\Git\cmd\git.exe" set "GIT=C:\Progr
 if not defined GIT if exist "C:\Program Files (x86)\Git\cmd\git.exe" set "GIT=C:\Program Files (x86)\Git\cmd\git.exe"
 if not defined GIT (
   echo.
-  echo [错误] 没有找到 Git。请先安装：https://git-scm.com/download/win
+  echo [ERROR] Git not found. Please install it first: https://git-scm.com/download/win
   echo.
   pause
   exit /b 1
@@ -18,19 +17,19 @@ if not defined GIT (
 
 cd /d "%ROOT%"
 echo.
-echo 将把整个项目恢复到【上次备份】时的状态。
-echo 警告：上次备份之后、还没保存的改动会丢失！
+echo This will restore the whole project to the LAST BACKUP state.
+echo WARNING: changes made after the last backup will be LOST!
 echo.
-choice /C YN /M "确定继续吗（Y=继续 N=取消）"
+choice /C YN /M "Continue? (Y=Yes N=No)"
 if errorlevel 2 exit /b
 
 "%GIT%" reset --hard HEAD
 if %errorlevel%==0 (
   echo.
-  echo [完成] 已恢复到上次备份！
+  echo [OK] Restored to the last backup.
 ) else (
   echo.
-  echo [提示] 恢复失败：可能是还没有任何备份（仓库是空的）。
+  echo [INFO] Restore failed: no backup exists yet.
 )
 echo.
 pause
