@@ -230,12 +230,10 @@ export default function App() {
         {view === 'timeline' && (
           <TimelineView
             tree={tree}
-            selectedId={selectedId}
-            selectedNode={selectedNode}
-            onSelect={setSelectedId}
-            onUpdate={handleUpdateNode}
-            onAddChild={handleAddChild}
-            onDelete={handleDeleteNode}
+            onGoWrite={(id) => {
+              setSelectedId(id);
+              setView('editor');
+            }}
           />
         )}
 

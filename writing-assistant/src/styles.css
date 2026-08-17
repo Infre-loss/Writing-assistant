@@ -312,16 +312,52 @@ button {
   margin-bottom: 8px;
 }
 
+/* ---------- 大纲树：两行布局（标题一行，状态/字数在下方） ---------- */
 .tree-row {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
   padding: 6px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   border: 1px solid transparent;
   transition: background 0.12s;
   position: relative;
+}
+.row-line1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.row-line2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 26px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+  transition: filter 0.12s;
+}
+.status-text:hover {
+  filter: brightness(0.96);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 .tree-row:hover {
   background: var(--primary-light);
@@ -668,6 +704,19 @@ button {
   border-radius: 8px;
   margin-left: 8px;
   color: #fff;
+}
+.tl-write {
+  float: right;
+  font-size: 12px;
+  color: var(--primary);
+  background: var(--primary-light);
+  border-radius: 10px;
+  padding: 2px 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tl-card:hover .tl-write {
+  background: var(--primary-soft);
 }
 .tl-milestone {
   margin-top: 6px;

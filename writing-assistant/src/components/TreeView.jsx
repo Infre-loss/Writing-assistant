@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { STATUS_META, nextStatus, isDescendant } from '../store.js';
 
+const STATUS_LIGHT = {
+  not_started: 'var(--not-started-light)',
+  writing: 'var(--writing-light)',
+  done: 'var(--done-light)',
+};
+
 export default function TreeView({
   tree,
   selectedId,
@@ -60,6 +66,7 @@ export default function TreeView({
     const hasChildren = node.children && node.children.length > 0;
     const isOpen = expanded.has(node.id);
     const meta = STATUS_META[node.status] || STATUS_META.not_started;
+    const light = STATUS_LIGHT[node.status] || STATUS_LIGHT.not_started;
     const pct =
       node.targetWords > 0
         ? Math.min(100, Math.round((node.currentWords / node.targetWords) * 100))
@@ -111,60 +118,95 @@ export default function TreeView({
             setDropTarget(null);
           }}
         >
-          {hasChildren ? (
-            <button
-              className="chevron"
+          <div className="row-line1">
+            {hasChildren ? (
+              <button
+                className="chevron"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(node.id);
+                }}
+              >
+                {isOpen ? '▾' : '▸'}
+              </button>
+            ) : (
+              <span className="chevron placeholder">•</span>
+            )}
+
+            {isEditing ? (
+              <input
+                className="node-title"
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={() => commitEdit(node)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEdit(node);
+                  if (e.key === 'Escape') setEditingId(null);
+                }}
+              />
+            ) : (
+              <span
+                className="node-title"
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  startEdit(node);
+                }}
+              >
+                {node.title || '（未命名）'}
+              </span>
+            )}
+
+            {node.milestone && <span className="milestone-flag">🏁 {node.milestone}</span>}
+
+            <span className="row-actions">
+              <button
+                className="icon-btn"
+                title="添加子节点"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddChild(node.id);
+                }}
+              >
+                ＋
+              </button>
+              <button
+                className="icon-btn"
+                title="添加同级节点"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSibling(node.id);
+                }}
+              >
+                ⇣
+              </button>
+              <button
+                className="icon-btn danger"
+                title="删除"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteNode(node.id);
+                }}
+              >
+                🗑
+              </button>
+            </span>
+          </div>
+
+          <div className="row-line2">
+            <span
+              className="status-text"
+              style={{ background: light }}
+              title={`状态：${meta.label}（点击切换）`}
               onClick={(e) => {
                 e.stopPropagation();
-                toggle(node.id);
+                onUpdateNode(node.id, { status: nextStatus(node.status) });
               }}
             >
-              {isOpen ? '▾' : '▸'}
-            </button>
-          ) : (
-            <span className="chevron placeholder">•</span>
-          )}
-
-          <span
-            className="status-badge"
-            style={{ background: meta.color }}
-            title={`状态：${meta.label}（点击切换）`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onUpdateNode(node.id, { status: nextStatus(node.status) });
-            }}
-          >
-            {meta.label}
-          </span>
-
-          {isEditing ? (
-            <input
-              className="node-title"
-              autoFocus
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={() => commitEdit(node)}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitEdit(node);
-                if (e.key === 'Escape') setEditingId(null);
-              }}
-            />
-          ) : (
-            <span
-              className="node-title"
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                startEdit(node);
-              }}
-            >
-              {node.title || '（未命名）'}
+              <span className="status-dot" style={{ background: meta.color }} />
+              {meta.label}
             </span>
-          )}
-
-          {node.milestone && <span className="milestone-flag">🏁 {node.milestone}</span>}
-
-          <span className="node-meta">
             {node.targetWords > 0 && (
               <>
                 <span className="words">
@@ -175,40 +217,7 @@ export default function TreeView({
                 </span>
               </>
             )}
-          </span>
-
-          <span className="row-actions">
-            <button
-              className="icon-btn"
-              title="添加子节点"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddChild(node.id);
-              }}
-            >
-              ＋
-            </button>
-            <button
-              className="icon-btn"
-              title="添加同级节点"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddSibling(node.id);
-              }}
-            >
-              ⇣
-            </button>
-            <button
-              className="icon-btn danger"
-              title="删除"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteNode(node.id);
-              }}
-            >
-              🗑
-            </button>
-          </span>
+          </div>
         </div>
 
         {hasChildren && isOpen && (node.children || []).map((c) => renderNode(c, depth + 1))}
@@ -240,7 +249,7 @@ export default function TreeView({
           ＋ 添加章节
         </button>
         <span className="sub" style={{ fontSize: 12, color: 'var(--text-3)', alignSelf: 'center' }}>
-          双击标题可重命名 · 拖拽调整层级与顺序 · 点击状态标签切换进度
+          双击标题可重命名 · 拖拽调整层级与顺序 · 点击状态文字切换进度
         </span>
       </div>
 

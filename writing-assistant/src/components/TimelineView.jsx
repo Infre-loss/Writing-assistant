@@ -1,16 +1,7 @@
 import React from 'react';
 import { flatten, STATUS_META } from '../store.js';
-import DetailPanel from './DetailPanel.jsx';
 
-export default function TimelineView({
-  tree,
-  selectedId,
-  selectedNode,
-  onSelect,
-  onUpdate,
-  onAddChild,
-  onDelete,
-}) {
+export default function TimelineView({ tree, onGoWrite }) {
   const flat = flatten(tree);
   const ordered = flat
     .map((n) => ({ ...n, sortKey: n.storyOrder || n.preIndex + 1 }))
@@ -20,8 +11,10 @@ export default function TimelineView({
     <div className="timeline-wrap">
       <div className="timeline-scroll">
         <div className="pane-header">
-          <span>时间轴 · 按故事发生顺序</span>
-          <span className="sub">每个节点可在右侧详情中设置「时间轴顺序」；设置里程碑可标记关键节点</span>
+          <span>时间轴 · 按故事顺序排列（层级缩进）</span>
+          <span className="sub">
+            点击卡片直接进入写作台创作；层级顺序可在大纲中拖拽调整，故事顺序可在详情里设置「时间轴顺序」
+          </span>
         </div>
 
         {ordered.length === 0 ? (
@@ -40,13 +33,21 @@ export default function TimelineView({
                   ? Math.min(100, Math.round((n.currentWords / n.targetWords) * 100))
                   : 0;
               return (
-                <div key={n.id} className="tl-item">
+                <div
+                  key={n.id}
+                  className="tl-item"
+                  style={{ marginLeft: n.depth * 26 }}
+                  title={`点击进入写作台：${n.title || '未命名'}`}
+                >
                   <span className={`tl-dot ${n.status}`} />
                   <div
-                    className={'tl-card' + (selectedId === n.id ? ' selected' : '')}
-                    onClick={() => onSelect(n.id)}
+                    className="tl-card"
+                    onClick={() => onGoWrite && onGoWrite(n.id)}
                   >
-                    <div className="tl-title">{n.title || '（未命名）'}</div>
+                    <div className="tl-title">
+                      {n.title || '（未命名）'}
+                      <span className="tl-write">✍ 去写作</span>
+                    </div>
                     <div className="tl-status">
                       <span className="tl-status-dot" style={{ background: meta.color }} />
                       <span className="tl-status-text">{meta.label}</span>
@@ -65,19 +66,6 @@ export default function TimelineView({
           </div>
         )}
       </div>
-
-      {selectedNode && (
-        <div className="pane pane-right" style={{ flex: '0 0 42%', borderLeft: '1px solid var(--border)' }}>
-          <DetailPanel
-            node={selectedNode}
-            onSelect={onSelect}
-            onUpdate={onUpdate}
-            onAddChild={onAddChild}
-            onDelete={onDelete}
-            onGoWrite={() => {}}
-          />
-        </div>
-      )}
     </div>
   );
 }

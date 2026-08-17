@@ -105,11 +105,33 @@ function createWindow() {
               cards: document.querySelectorAll('.tl-card').length,
               titleFirst: document.querySelectorAll('.tl-card .tl-title').length,
               statusBelow: document.querySelectorAll('.tl-card .tl-status').length,
+              writeBtns: document.querySelectorAll('.tl-write').length,
+              rightPanel: !!document.querySelector('.timeline-wrap .pane-right'),
+              indents: [...document.querySelectorAll('.tl-item')].map((el) => el.style.marginLeft),
+            };
+          });
+          await safe('timelineJump', async () => {
+            const card = document.querySelector('.tl-card');
+            const titleBefore = card ? (card.querySelector('.tl-title').textContent || '').trim() : '';
+            if (card) card.click();
+            await new Promise((r) => setTimeout(r, 800));
+            const ta = document.querySelector('.editor-textarea');
+            const sel = document.querySelector('.editor-select');
+            return {
+              clicked: titleBefore,
+              editorOpen: !!ta,
+              selectedTitle: sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].textContent.trim() : '',
             };
           });
           await safe('backToTree', async () => {
             await clickTab('大纲');
-            return document.querySelectorAll('.tree-row').length;
+            return {
+              rows: document.querySelectorAll('.tree-row').length,
+              line1: document.querySelectorAll('.row-line1').length,
+              line2: document.querySelectorAll('.row-line2').length,
+              statusText: document.querySelectorAll('.status-text').length,
+              inlineBadge: document.querySelectorAll('.tree-row > .status-badge').length,
+            };
           });
           await safe('gitPanel', async () => {
             const backupBtn = [...document.querySelectorAll('.topbar button')].find((b) => (b.textContent || '').includes('备份'));
