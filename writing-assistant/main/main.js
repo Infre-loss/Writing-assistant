@@ -89,6 +89,24 @@ function createWindow() {
               textarea: !!document.querySelector('.ai-textarea'),
             };
           });
+          await safe('editor', async () => {
+            await clickTab('写作台');
+            const ta = document.querySelector('.editor-textarea');
+            return {
+              textareaLen: ta ? ta.value.length : -1,
+              wordLine: document.querySelector('.editor-status-line')?.textContent?.trim() || '',
+              btns: [...document.querySelectorAll('.editor-actions button')].map((b) => b.textContent.trim()),
+              selectorCount: document.querySelectorAll('.editor-select option').length,
+            };
+          });
+          await safe('timelineLayout', async () => {
+            await clickTab('时间轴');
+            return {
+              cards: document.querySelectorAll('.tl-card').length,
+              titleFirst: document.querySelectorAll('.tl-card .tl-title').length,
+              statusBelow: document.querySelectorAll('.tl-card .tl-status').length,
+            };
+          });
           await safe('backToTree', async () => {
             await clickTab('大纲');
             return document.querySelectorAll('.tree-row').length;

@@ -3,8 +3,9 @@
 一款运行在 Windows 上的辅助写作桌面软件，面向作家群体：
 
 - **大纲管理**：多作品、多层级大纲（卷→章→节），树状图 + 时间轴双视图，纯本地手动搭建
+- **写作台**：直接在软件内创作正文（纯文本编辑器），实时字数统计并同步大纲进度，支持 Word(.docx) 导入/导出（单章或全书）
 - **进度追踪**：每章标记「未开始 / 写作中 / 已完成」，目标字数与已写字数统计，总进度一目了然
-- **AI 润色**：独立「AI 助手」页签，自动操作本机 Edge 浏览器连接 DeepSeek 网页版润色文字
+- **AI 润色**：独立「AI 助手」页签，自动操作本机 Edge 浏览器连接 DeepSeek 网页版润色文字（支持长文）
 - **隐私优先**：大纲与作品数据只保存在本机，**只有主动粘贴到 AI 输入框的文字**才会发送给 DeepSeek
 
 ---
@@ -37,12 +38,13 @@ writing-assistant/
 │   ├── ipc.js            # IPC 通道注册
 │   ├── storage.js        # 本地存储（作品 JSON 文件）
 │   ├── deepseek.js       # DeepSeek 网页版自动化（playwright-core + 本机 Edge）
-│   └── export.js         # 导出 Markdown / TXT
+│   ├── export.js         # 导出 Markdown / TXT / Word(docx)
+│   └── import.js         # 导入 Word(docx) 解析（mammoth）
 ├── src/                  # 渲染进程（React + Vite）
 │   ├── App.jsx           # 主状态与布局
 │   ├── store.js          # 大纲树的纯函数操作（增删改查/统计）
 │   ├── styles.css        # 白色 + 淡蓝色设计系统
-│   └── components/       # TopBar / TreeView / DetailPanel / TimelineView / AIView / Modal
+│   └── components/       # TopBar / TreeView / DetailPanel / TimelineView / EditorView(写作台) / AIView / Modal
 ├── index.html
 ├── vite.config.mjs
 └── package.json
@@ -54,7 +56,7 @@ writing-assistant/
 ```
 C:\Users\<你的用户名>\AppData\Roaming\writing-assistant\data\
 ├── projects.json              # 作品列表
-└── project-<id>.json          # 每个作品的大纲树/进度/备注
+└── project-<id>.json          # 每个作品的大纲树/进度/备注/正文(content)
 ```
 
 AI 浏览器的登录档案保存在同一目录的 `deepseek-profile\` 下（登录一次长期有效）。
@@ -83,4 +85,5 @@ npm run pack:installer  # 生成安装程序（NSIS）
 ## 已知限制
 - AI 润色依赖 DeepSeek 网页版的登录状态与页面结构，网页改版或登录过期时需重新登录/更新适配
 - 自动操作网页版理论上存在账号风险，建议使用常用账号并避免发送敏感内容
-- 字数统计为手动填写（写作时自行更新「已写字数」）
+- Word 导入仅支持 .docx 格式（老 .doc 需先另存为 .docx）
+- 字数统计按非空白字符数计算，与 Word 的统计口径可能有细微差别

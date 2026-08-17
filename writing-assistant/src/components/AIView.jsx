@@ -170,7 +170,12 @@ export default function AIView() {
 
       <div className="ai-box">
         <div className="label">
-          <span>要润色的文字（手动粘贴到这里，不会自动读取你的大纲）</span>
+          <span>
+            要润色的文字（手动粘贴到这里，不会自动读取你的大纲）
+            {text.length > 1000 && (
+              <span style={{ color: 'var(--danger)' }}> · 长文生成时间会稍长，请耐心等待</span>
+            )}
+          </span>
           <span>{text.length} 字</span>
         </div>
         <textarea

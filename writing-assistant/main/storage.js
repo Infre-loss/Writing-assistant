@@ -108,6 +108,30 @@ function saveTree(id, tree) {
   return { id: p.id, name: p.name, updatedAt: p.updatedAt };
 }
 
+// 更新某个章节节点的正文内容与字数（Word 导入时使用）
+function updateNodeContent(id, nodeId, content, currentWords) {
+  const p = loadProject(id);
+  if (!p) return null;
+  const walk = (nodes) => {
+    for (const n of nodes) {
+      if (n.id === nodeId) {
+        n.content = content;
+        n.currentWords = currentWords;
+        return n;
+      }
+      const r = walk(n.children || []);
+      if (r) return r;
+    }
+    return null;
+  };
+  const found = walk(p.tree);
+  if (!found) return null;
+  p.updatedAt = new Date().toISOString();
+  writeJson(projectFilePath(id), p);
+  rebuildIndex();
+  return found;
+}
+
 module.exports = {
   initStorage,
   listProjects,
@@ -116,4 +140,5 @@ module.exports = {
   deleteProject,
   loadProject,
   saveTree,
+  updateNodeContent,
 };

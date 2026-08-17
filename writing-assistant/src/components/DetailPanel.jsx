@@ -1,7 +1,7 @@
 import React from 'react';
 import { STATUS_META } from '../store.js';
 
-export default function DetailPanel({ node, onSelect, onUpdate, onAddChild, onDelete }) {
+export default function DetailPanel({ node, onSelect, onUpdate, onAddChild, onDelete, onGoWrite }) {
   if (!node) {
     return (
       <div className="detail-wrap detail-empty">
@@ -98,10 +98,22 @@ export default function DetailPanel({ node, onSelect, onUpdate, onAddChild, onDe
         <button className="btn primary sm" onClick={() => onAddChild(node.id)}>
           ＋ 添加子节点
         </button>
+        <button className="btn sm" onClick={() => onGoWrite && onGoWrite()}>
+          ✍ 去写作台创作
+        </button>
         <button className="btn sm" onClick={() => onDelete(node.id)}>
           删除该节点
         </button>
       </div>
+      {node.content && String(node.content).trim() ? (
+        <div className="detail-label" style={{ marginTop: 10 }}>
+          正文：{String(node.content).replace(/\s/g, '').length} 字（点击「去写作台创作」继续写）
+        </div>
+      ) : (
+        <div className="detail-label" style={{ marginTop: 10 }}>
+          还没有正文，点击「去写作台创作」开始写。
+        </div>
+      )}
 
       {node.children && node.children.length > 0 && (
         <div className="detail-section">

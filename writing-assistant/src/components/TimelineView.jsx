@@ -46,16 +46,16 @@ export default function TimelineView({
                     className={'tl-card' + (selectedId === n.id ? ' selected' : '')}
                     onClick={() => onSelect(n.id)}
                   >
-                    <div className="tl-title">
-                      {n.title || '（未命名）'}
-                      <span className="tl-badge" style={{ background: meta.color }}>
-                        {meta.label}
+                    <div className="tl-title">{n.title || '（未命名）'}</div>
+                    <div className="tl-status">
+                      <span className="tl-status-dot" style={{ background: meta.color }} />
+                      <span className="tl-status-text">{meta.label}</span>
+                      <span className="tl-sep">·</span>
+                      <span>
+                        {n.targetWords > 0
+                          ? `字数 ${n.currentWords} / ${n.targetWords}（${pct}%）`
+                          : '未设置目标字数'}
                       </span>
-                    </div>
-                    <div className="tl-sub">
-                      {n.targetWords > 0
-                        ? `字数 ${n.currentWords} / ${n.targetWords}（${pct}%）`
-                        : '未设置目标字数'}
                     </div>
                     {n.milestone && <div className="tl-milestone">🏁 {n.milestone}</div>}
                   </div>
@@ -74,6 +74,7 @@ export default function TimelineView({
             onUpdate={onUpdate}
             onAddChild={onAddChild}
             onDelete={onDelete}
+            onGoWrite={() => {}}
           />
         </div>
       )}

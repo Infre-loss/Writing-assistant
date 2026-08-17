@@ -4,6 +4,7 @@ import TreeView from './components/TreeView.jsx';
 import DetailPanel from './components/DetailPanel.jsx';
 import TimelineView from './components/TimelineView.jsx';
 import AIView from './components/AIView.jsx';
+import EditorView from './components/EditorView.jsx';
 import Modal from './components/Modal.jsx';
 import {
   makeNode,
@@ -220,6 +221,7 @@ export default function App() {
                   onUpdate={handleUpdateNode}
                   onAddChild={handleAddChild}
                   onDelete={handleDeleteNode}
+                  onGoWrite={() => setView('editor')}
                 />
               </div>
             </div>
@@ -234,6 +236,16 @@ export default function App() {
             onUpdate={handleUpdateNode}
             onAddChild={handleAddChild}
             onDelete={handleDeleteNode}
+          />
+        )}
+
+        {view === 'editor' && (
+          <EditorView
+            project={project}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onUpdate={handleUpdateNode}
+            onToast={showToast}
           />
         )}
 

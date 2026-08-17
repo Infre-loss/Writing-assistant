@@ -924,6 +924,115 @@ button {
   line-height: 1.7;
 }
 
+/* ---------- 时间轴卡片：状态在章节名下方 ---------- */
+.tl-card .tl-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.tl-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.tl-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tl-status-text {
+  color: var(--text);
+  font-weight: 600;
+}
+.tl-sep {
+  color: var(--text-3);
+}
+
+/* ---------- 写作台（正文编辑） ---------- */
+.editor-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: var(--bg);
+}
+.editor-select {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  max-width: 240px;
+}
+.editor-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.editor-status-line {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.editor-save-state {
+  color: var(--done);
+}
+.editor-textarea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 24px 28px;
+  font-size: 15.5px;
+  line-height: 2.05;
+  color: var(--text);
+  background: var(--panel);
+  user-select: text;
+}
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.editor-hint {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-left: 4px;
+}
+.editor-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-3);
+  font-size: 13.5px;
+  line-height: 2;
+}
+.editor-empty .big {
+  font-size: 42px;
+}
+
 /* ---------- 提示 toast ---------- */
 .toast {
   position: fixed;

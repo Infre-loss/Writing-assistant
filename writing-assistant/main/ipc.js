@@ -4,6 +4,17 @@ const { dialog } = require('electron');
 const storage = require('./storage');
 const exporter = require('./export');
 const deepseek = require('./deepseek');
+const importer = require('./import');
+
+// 在大纲树中按 id 查找节点
+function findNodeInTree(nodes, id) {
+  for (const n of nodes || []) {
+    if (n.id === id) return n;
+    const r = findNodeInTree(n.children || [], id);
+    if (r) return r;
+  }
+  return null;
+}
 
 function registerIpc(ipcMain, ctx) {
   const { getMainWindow } = ctx;
@@ -47,6 +58,54 @@ function registerIpc(ipcMain, ctx) {
       return { ok: true, filePath };
     } catch (e) {
       return { ok: false, detail: '导出失败: ' + e.message };
+    }
+  });
+
+  // ---------- Word 导入导出 ----------
+  ipcMain.handle('export:docx', async (_e, { id, scope, nodeId }) => {
+    const project = storage.loadProject(id);
+    if (!project) return { ok: false, detail: '作品不存在' };
+    const win = getMainWindow();
+    try {
+      let buffer;
+      let defaultName;
+      if (scope === 'chapter' && nodeId) {
+        const node = findNodeInTree(project.tree, nodeId);
+        if (!node) return { ok: false, detail: '章节不存在' };
+        buffer = await exporter.exportChapterDocx(node);
+        defaultName = `${project.name}-${node.title || '章节'}.docx`;
+      } else {
+        buffer = await exporter.exportBookDocx(project);
+        defaultName = `${project.name}.docx`;
+      }
+      const { canceled, filePath } = await dialog.showSaveDialog(win, {
+        title: '导出 Word 文档',
+        defaultPath: defaultName,
+        filters: [{ name: 'Word 文档', extensions: ['docx'] }],
+      });
+      if (canceled || !filePath) return { ok: false, canceled: true };
+      fs.writeFileSync(filePath, buffer);
+      return { ok: true, filePath };
+    } catch (e) {
+      return { ok: false, detail: '导出失败: ' + e.message };
+    }
+  });
+
+  ipcMain.handle('import:docx', async (_e, { id, nodeId }) => {
+    const win = getMainWindow();
+    const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+      title: '导入 Word 文档（写入当前章节）',
+      filters: [{ name: 'Word 文档', extensions: ['docx'] }],
+      properties: ['openFile'],
+    });
+    if (canceled || !filePaths.length) return { ok: false, canceled: true };
+    try {
+      const r = await importer.importDocx(filePaths[0]);
+      const updated = storage.updateNodeContent(id, nodeId, r.text, r.charCount);
+      if (!updated) return { ok: false, detail: '章节不存在' };
+      return { ok: true, filePath: filePaths[0], text: r.text, charCount: r.charCount };
+    } catch (e) {
+      return { ok: false, detail: '导入失败: ' + e.message };
     }
   });
 

@@ -120,15 +120,38 @@ function getStatus() {
   };
 }
 
+// 抓取最后一条 AI 回复的完整文本：
+// 优先取最后一条「助手消息容器」里的全部内容块拼接（修复长回复被截断的问题）
 async function lastAssistantText() {
   try {
+    // 方式一：最后一条助手消息容器
+    const containers = page.locator('.ds-chat-message-assistant');
+    const n = await containers.count();
+    if (n > 0) {
+      const last = containers.nth(n - 1);
+      const blocks = last.locator('.ds-markdown');
+      const count = await blocks.count();
+      if (count > 0) {
+        const texts = await blocks.allTextContents();
+        const joined = texts
+          .map((t) => String(t).trim())
+          .filter(Boolean)
+          .join('\n');
+        if (joined) return joined;
+      }
+      return ''; // 容器存在但内容为空（生成中/空回复）
+    }
+    // 方式二（兜底）：全局 .ds-markdown 拼接
     for (const sel of SELECTORS.assistantMessage) {
       const loc = page.locator(sel);
       const count = await loc.count();
       if (count === 0) continue;
       const texts = await loc.allTextContents();
-      const last = (texts[texts.length - 1] || '').trim();
-      if (last) return last;
+      const joined = texts
+        .map((t) => String(t).trim())
+        .filter(Boolean)
+        .join('\n');
+      if (joined) return joined;
     }
     return '';
   } catch (e) {
@@ -310,17 +333,23 @@ function polish(payload) {
       return { ok: false, detail: 'AI 似乎没有开始回复，请检查浏览器窗口（是否已登录）' };
     }
 
-    // 阶段二：等待生成结束（“停止”按钮消失且文字不再变化）
-    for (let i = 0; i < 120; i++) {
+    // 阶段二：等待生成结束（“停止”按钮消失，且文字连续两次采样一致才算完整）
+    // 等待时长按输入长度自适应：基础 120 秒，每多 500 字增加 30 秒，上限 600 秒
+    const maxWaitSec = Math.min(600, 120 + Math.floor(text.length / 500) * 30);
+    emit(STATUS.WORKING, 'AI 正在生成，请稍候…（最长约 ' + maxWaitSec + ' 秒）');
+    for (let i = 0; i < maxWaitSec; i++) {
       await page.waitForTimeout(1000);
       if (await isLimitHit()) break;
       const stop = await isStopVisible();
       const now = await lastAssistantText();
       if (!stop && now && now !== before) {
-        await page.waitForTimeout(1500);
-        const final = await lastAssistantText();
-        if (!(await isStopVisible()) && final && final !== before) {
-          reply = final;
+        await page.waitForTimeout(2000);
+        const a = await lastAssistantText();
+        if (await isStopVisible()) continue; // 又开始生成（罕见），继续等待
+        await page.waitForTimeout(2000);
+        const b = await lastAssistantText();
+        if (a && b && a === b) {
+          reply = b;
           break;
         }
       }

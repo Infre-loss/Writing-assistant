@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('api', {
   saveProject: (id, tree) => ipcRenderer.invoke('project:save', { id, tree }),
   // 导出
   exportProject: (id, format) => ipcRenderer.invoke('export:project', { id, format }),
+  // Word
+  exportDocx: (id, scope, nodeId) => ipcRenderer.invoke('export:docx', { id, scope, nodeId }),
+  importDocx: (id, nodeId) => ipcRenderer.invoke('import:docx', { id, nodeId }),
   // 剪贴板
   copyText: (text) => ipcRenderer.invoke('clipboard:write', text),
   // AI

@@ -80,6 +80,12 @@ export default function TopBar({
           时间轴
         </button>
         <button
+          className={'tab' + (view === 'editor' ? ' active' : '')}
+          onClick={() => onSetView('editor')}
+        >
+          写作台
+        </button>
+        <button
           className={'tab' + (view === 'ai' ? ' active' : '')}
           onClick={() => onSetView('ai')}
         >
