@@ -30,12 +30,12 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
     let raf = 0;
     let hero = null;
     let heroActive = 0; // 中央大烟花仍在飘落的光点数
+    let heroLaunched = false; // 整场只发射一朵中央花
     let heroBloomed = false;
     let finished = false;
-    let lastHeroAt = 0;
-    let nextHero = 2000;
     let lastAmbientAt = 0;
     let nextAmbient = 350;
+    let heroLaunchAt = -1;
     let alive = true;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
@@ -160,13 +160,14 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
     const tick = (t) => {
       if (!alive) return;
       raf = requestAnimationFrame(tick);
+      if (heroLaunchAt < 0) heroLaunchAt = t;
       ctx.clearRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter';
 
-      // 中央大烟花周期（全屏秀阶段才放）
-      if (!ambientOnly && !heroBloomed && t - lastHeroAt > nextHero) {
+      // 中央大烟花：垫场之后发射，仅一朵（发射后绝不重发）
+      if (!ambientOnly && !heroLaunched && t - heroLaunchAt > 1200) {
+        heroLaunched = true;
         launchHero();
-        lastHeroAt = t;
       }
 
       // 周边小烟花 + 流星光：持续补位
@@ -197,7 +198,8 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
         ctx.beginPath();
         ctx.arc(hk.x, hk.y, 2.4, 0, Math.PI * 2);
         ctx.fill();
-        if (hk.y <= hk.targetY) {
+        // 引爆：到达目标高度，或升得过高时也必炸（保险），绝不让火箭悬空
+        if (hk.y <= hk.targetY || hk.y < H * 0.1) {
           bigBloom(hk.x, hk.y);
           hero = null;
         }
