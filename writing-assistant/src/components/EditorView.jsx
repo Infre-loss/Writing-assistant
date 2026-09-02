@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flatten } from '../store.js';
+import { SIDELINES } from '../celebration.js';
 
 const countChars = (text) => String(text || '').replace(/\s/g, '').length;
 
-export default function EditorView({ project, selectedId, onSelect, onUpdate, onToast }) {
+export default function EditorView({ project, selectedId, onSelect, onUpdate, onToast, onCelebrate }) {
   const flat = useMemo(() => flatten(project ? project.tree : []), [project]);
   const node =
     flat.find((n) => n.id === selectedId) ||
@@ -12,11 +13,36 @@ export default function EditorView({ project, selectedId, onSelect, onUpdate, on
     null;
   const [saveState, setSaveState] = useState('');
   const [busy, setBusy] = useState('');
+  const [sideline, setSideline] = useState(null); // { key, text }
   const saveTimer = useRef(null);
+  const sideTimer = useRef(null);
+  const sideLast = useRef(0);
+  const sidePrevIdx = useRef(-1);
+  const typeCount = useRef(0);
 
   useEffect(() => {
-    return () => clearTimeout(saveTimer.current);
+    return () => {
+      clearTimeout(saveTimer.current);
+      clearTimeout(sideTimer.current);
+    };
   }, []);
+
+  // 写作台小彩蛋：打字时低概率在角落浮现一句鼓励（≥60 秒一次，不打扰）
+  const maybeSideline = () => {
+    typeCount.current += 1;
+    const now = Date.now();
+    if (typeCount.current % 24 !== 0 || now - sideLast.current < 60000) return;
+    let idx;
+    do {
+      idx = Math.floor(Math.random() * SIDELINES.length);
+    } while (idx === sidePrevIdx.current && SIDELINES.length > 1);
+    sidePrevIdx.current = idx;
+    sideLast.current = now;
+    const text = SIDELINES[idx];
+    setSideline({ key: now, text });
+    clearTimeout(sideTimer.current);
+    sideTimer.current = setTimeout(() => setSideline(null), 4600);
+  };
 
   if (!project) {
     return (
@@ -41,10 +67,22 @@ export default function EditorView({ project, selectedId, onSelect, onUpdate, on
   }
 
   const handleChange = (value) => {
-    onUpdate(node.id, { content: value, currentWords: countChars(value) });
+    const words = countChars(value);
+    const target = Number(node.targetWords) || 0;
+    const reached = target > 0 && words >= target && node.cheeredTarget !== target;
+    const patch = { content: value, currentWords: words };
+    // 首次跨过目标字数：记录已庆祝（持久化），并弹出达标鼓励
+    if (reached) {
+      patch.cheeredTarget = target;
+    }
+    onUpdate(node.id, patch);
+    if (reached && onCelebrate) {
+      onCelebrate({ node: { id: node.id, title: node.title, targetWords: target } });
+    }
     setSaveState('保存中…');
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => setSaveState('已保存 ✓'), 900);
+    maybeSideline();
   };
 
   const handleImport = async () => {
@@ -104,12 +142,19 @@ export default function EditorView({ project, selectedId, onSelect, onUpdate, on
         </span>
       </div>
 
-      <textarea
-        className="editor-textarea"
-        placeholder={'在这里开始写作……\n\n写完后可导出为 Word 文档；也可以导入已有的 Word 文档继续写。'}
-        value={content}
-        onChange={(e) => handleChange(e.target.value)}
-      />
+      <div className="editor-body">
+        <textarea
+          className="editor-textarea"
+          placeholder={'在这里开始写作……\n\n写完后可导出为 Word 文档；也可以导入已有的 Word 文档继续写。'}
+          value={content}
+          onChange={(e) => handleChange(e.target.value)}
+        />
+        {sideline && (
+          <div key={sideline.key} className="editor-sideline">
+            {sideline.text}
+          </div>
+        )}
+      </div>
 
       <div className="editor-actions">
         <button className="btn primary sm" disabled={!!busy} onClick={() => handleExport('chapter')}>

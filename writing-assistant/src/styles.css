@@ -1313,6 +1313,99 @@ textarea {
   box-shadow: 0 1px 3px rgba(30, 45, 84, 0.1);
 }
 
+/* ---------- 庆祝弹窗 + 写作台角落彩蛋 ---------- */
+.editor-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+}
+.editor-sideline {
+  position: absolute;
+  right: 28px;
+  bottom: 22px;
+  max-width: 72%;
+  padding: 10px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.7;
+  pointer-events: none;
+  z-index: 5;
+  animation: sideIn 0.5s ease both;
+}
+@keyframes sideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cheer-mask {
+  z-index: 300;
+}
+.cheer {
+  width: 370px;
+  max-width: 92vw;
+  padding: 30px 26px 26px;
+  border-radius: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: cheerPop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+@keyframes cheerPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cheer-emoji {
+  font-size: 46px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.cheer-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.7;
+}
+.cheer-title b {
+  color: var(--primary);
+  font-size: 23px;
+  margin: 0 2px;
+}
+.cheer-sub {
+  margin-top: 10px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.9;
+}
+.cheer-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.cheer-actions .btn {
+  min-width: 120px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+}
+
 /* ---------- 提示 toast ---------- */
 .toast {
   position: fixed;

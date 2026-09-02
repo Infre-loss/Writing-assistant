@@ -103,6 +103,35 @@ function createWindow() {
               selectorCount: document.querySelectorAll('.editor-select option').length,
             };
           });
+          await safe('cheerTest', async () => {
+            // 选中目标=20 字的测试章，输入超过 20 字 → 应弹出达标弹窗
+            const sel = document.querySelector('.editor-select');
+            if (sel) {
+              const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+              setter.call(sel, 'n13');
+              sel.dispatchEvent(new Event('change', { bubbles: true }));
+              await new Promise((r) => setTimeout(r, 500));
+            }
+            const ta = document.querySelector('.editor-textarea');
+            const text = '短短的开头。一二三四五六七八九十一二三四五六七八九十';
+            if (ta) {
+              const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+              setter.call(ta, text);
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              await new Promise((r) => setTimeout(r, 800));
+            }
+            const cheerTitle = document.querySelector('.cheer .cheer-title');
+            const btns = [...document.querySelectorAll('.cheer-actions button')].map((b) => b.textContent.trim());
+            const label = cheerTitle ? document.querySelector('.cheer .cheer-sub')?.textContent || '' : '';
+            const result = cheerTitle
+              ? cheerTitle.innerText.replace(/\s+/g, ' ').slice(0, 60)
+              : 'NO CHEER';
+            // 关掉弹窗，恢复现场
+            const closeBtn = [...document.querySelectorAll('.cheer-actions button')].find((b) => b.textContent.includes('休息'));
+            if (closeBtn) closeBtn.click();
+            await new Promise((r) => setTimeout(r, 400));
+            return { title: result, chapter: label, buttons: btns };
+          });
           await safe('timelineLayout', async () => {
             await clickTab('时间轴');
             return {

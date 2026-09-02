@@ -7,6 +7,8 @@ import AIView from './components/AIView.jsx';
 import EditorView from './components/EditorView.jsx';
 import Modal from './components/Modal.jsx';
 import UpdatePanel from './components/UpdatePanel.jsx';
+import CelebrationModal from './components/CelebrationModal.jsx';
+import { nextMilestone, markBookDone, hasBookDone } from './celebration.js';
 import {
   makeNode,
   addChild,
@@ -27,6 +29,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [modal, setModal] = useState(null); // {mode:'create'} | {mode:'rename', id, name}
   const [showUpdate, setShowUpdate] = useState(false);
+  const [celeQueue, setCeleQueue] = useState([]); // 庆祝弹窗队列 {kind,node,milestoneText}
   const saveTimer = useRef(null);
   const toastTimer = useRef(null);
 
@@ -148,6 +151,27 @@ export default function App() {
   const stats = calcStats(tree);
   const selectedNode = selectedId ? findNode(tree, selectedId) : null;
 
+  const pushCele = (item) => setCeleQueue((q) => [...q, item]);
+  const popCele = () => setCeleQueue((q) => q.slice(1));
+  const activeCele = celeQueue[0] || null;
+
+  // 彩蛋：全书总字数里程碑（每档一次，本地记录）
+  useEffect(() => {
+    if (!activeId || stats.words <= 0) return;
+    const m = nextMilestone(activeId, stats.words);
+    if (m) pushCele({ kind: 'milestone', milestoneText: m.text });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.words]);
+
+  // 彩蛋：全部章节完成后庆祝一次（本地记录）
+  useEffect(() => {
+    if (!activeId || stats.total === 0) return;
+    if (stats.done === stats.total && !hasBookDone(activeId)) {
+      if (markBookDone(activeId)) pushCele({ kind: 'book' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.done, stats.total]);
+
   const handleAddChild = (parentId) => {
     changeTree(addChild(tree, parentId, makeNode('新章节')));
   };
@@ -260,6 +284,7 @@ export default function App() {
             onSelect={setSelectedId}
             onUpdate={handleUpdateNode}
             onToast={showToast}
+            onCelebrate={(info) => pushCele({ kind: 'chapter', node: info.node })}
           />
         )}
 
@@ -280,6 +305,30 @@ export default function App() {
       )}
 
       {showUpdate && <UpdatePanel onClose={() => setShowUpdate(false)} />}
+
+      {activeCele && (
+        <CelebrationModal
+          kind={activeCele.kind}
+          node={activeCele.node}
+          milestoneText={activeCele.milestoneText}
+          onClose={popCele}
+          onPrimary={() => {
+            if (activeCele.kind === 'book' && activeId) {
+              window.api
+                .exportDocx(activeId, 'book', null)
+                .then((r) => {
+                  if (r.ok) showToast('已导出 Word: ' + r.filePath);
+                })
+                .catch(() => {});
+            }
+            if ((activeCele.kind === 'chapter' || activeCele.kind === 'milestone') && activeCele.node) {
+              setSelectedId(activeCele.node.id);
+            }
+            popCele();
+            if (activeCele.kind !== 'book') setView('editor');
+          }}
+        />
+      )}
 
       {toast && <div className="toast">{toast}</div>}
     </div>
