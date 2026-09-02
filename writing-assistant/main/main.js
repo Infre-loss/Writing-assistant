@@ -157,6 +157,25 @@ function createWindow() {
         const img = await mainWindow.webContents.capturePage();
         fs.writeFileSync(path.join(__dirname, '..', 'shot.png'), img.toPNG());
         log('shot saved, size=' + img.toPNG().length);
+        // 多视图截图（给用户目测验收）
+        for (const [fname, tabName] of [
+          ['shot-editor', '写作台'],
+          ['shot-timeline', '时间轴'],
+          ['shot-ai', 'AI 助手'],
+          ['shot-tree', '大纲'],
+        ]) {
+          try {
+            await mainWindow.webContents.executeJavaScript(
+              `(() => { const b = [...document.querySelectorAll('.tab')].find(x => x.textContent.includes('${tabName}')); if (b) b.click(); })()`
+            );
+            await new Promise((r) => setTimeout(r, 1000));
+            const im = await mainWindow.webContents.capturePage();
+            fs.writeFileSync(path.join(__dirname, '..', fname + '.png'), im.toPNG());
+            log(fname + ' saved');
+          } catch (e) {
+            log(fname + ' failed: ' + e.message);
+          }
+        }
       } catch (e) {
         log('capture failed: ' + e.message);
       }

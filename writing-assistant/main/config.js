@@ -3,6 +3,6 @@
 // 格式见项目根目录《发布更新说明.md》。留空 = 未启用检查更新。
 // 测试时可临时用环境变量 DS_UPDATE_URL 覆盖，例如指向本地 http 服务器。
 module.exports = {
-  UPDATE_MANIFEST_URL: process.env.DS_UPDATE_URL || '',
+  UPDATE_MANIFEST_URL: process.env.DS_UPDATE_URL || 'https://gitee.com/forthiss/writing-assistant/raw/master/version.json',
   AUTO_CHECK_UPDATE: true,
 };

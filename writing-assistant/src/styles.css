@@ -1,29 +1,85 @@
-/* ========== 写作助手 · 设计系统（白色 + 淡蓝色） ========== */
+/* ========== 写作助手 · 设计系统（白 + 淡蓝 · finesse product 精修版） ==========
+ * 基底：Cool Slate 蓝调中性阶 + Cobalt 蓝主色 —— 清爽但不廉价
+ * 规则：不用纯白/纯黑；发丝级半透明描边；蓝调淡投影；焦点环；克制动效
+ * register=product · accent=Cobalt · neutrals=Cool-Slate */
 :root {
-  --bg: #f2f7fd;
-  --panel: #ffffff;
-  --border: #dce8f5;
-  --border-strong: #c4d8ec;
-  --text: #1f2d3d;
-  --text-2: #5f7184;
-  --text-3: #93a5b8;
-  --primary: #2f7fd6;
-  --primary-hover: #276fbe;
-  --primary-light: #e7f1fc;
-  --primary-soft: #d7e9fa;
-  --accent: #7fb3e8;
-  --done: #3aa87c;
-  --done-light: #e5f5ee;
-  --writing: #2f7fd6;
-  --writing-light: #e7f1fc;
-  --not-started: #9db0c3;
-  --not-started-light: #eef2f7;
-  --danger: #d65a5a;
-  --danger-light: #fbeaea;
-  --radius: 10px;
-  --radius-sm: 7px;
-  --shadow: 0 1px 4px rgba(31, 45, 61, 0.08);
-  --shadow-lg: 0 6px 24px rgba(31, 45, 61, 0.12);
+  /* 表面：画布是带蓝调的白，面板次第浮起 */
+  --bg: #edf1f8; /* 画布底色（冷调微蓝灰） */
+  --panel: #fbfcff; /* 面板（微带蓝调的近白，绝非纯 #fff） */
+  --panel-2: #f2f5fb; /* 内嵌区：输入框/代码块/表头 */
+  --border: rgba(84, 100, 136, 0.16); /* 发丝描边（半透明） */
+  --border-strong: rgba(84, 100, 136, 0.3);
+  --border-accent: rgba(45, 91, 216, 0.35);
+
+  /* 墨色：蓝灰阶，避免死黑 */
+  --text: #1d2534;
+  --text-2: #4e5b73;
+  --text-3: #7e8ba3;
+
+  /* 品牌：Cobalt 蓝 —— 主按钮/选中态/进度 */
+  --primary: #2d5bd8;
+  --primary-hover: #244ec0;
+  --primary-active: #1f44a8;
+  --primary-light: rgba(45, 91, 216, 0.09); /* 弱色块：悬停/标签底 */
+  --primary-soft: rgba(45, 91, 216, 0.16); /* 选中底色 */
+  --accent: #8fb1f2; /* 淡蓝点缀：圆点环/时间轴线 */
+  --on-accent: #ffffff;
+  --focus-ring: rgba(45, 91, 216, 0.35);
+
+  /* 语义色（功能，非品牌）：柔和不刺眼 */
+  --done: #178a66;
+  --done-light: rgba(23, 138, 102, 0.11);
+  --writing: #2d5bd8;
+  --writing-light: rgba(45, 91, 216, 0.11);
+  --not-started: #78859c;
+  --not-started-light: rgba(120, 133, 156, 0.16);
+  --danger: #cf5353;
+  --danger-light: rgba(207, 83, 83, 0.1);
+
+  /* 圆角与阴影：投影染蓝调，不用纯黑影 */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(30, 45, 84, 0.05), 0 2px 10px rgba(30, 45, 84, 0.05);
+  --shadow-lg: 0 6px 16px rgba(30, 45, 84, 0.1), 0 20px 50px -20px rgba(30, 45, 84, 0.24);
+}
+
+/* 焦点环（键盘可达性）：所有可交互元素 */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+/* 文本选中与滚动条，细节一致 */
+::selection {
+  background: var(--primary-soft);
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(84, 100, 136, 0.25);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(84, 100, 136, 0.4);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 尊重系统"减少动态"设置：全局关掉过渡动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 * {
@@ -59,18 +115,6 @@ button {
   border: none;
   background: none;
   color: inherit;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: #c9d9ea;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 /* ---------- 布局 ---------- */
@@ -1131,6 +1175,125 @@ button {
 .upd-tip {
   color: var(--text-3);
   font-size: 12.5px;
+}
+
+/* ---------- 精修细节层（finesse product） ---------- */
+
+/* 输入控件：内嵌底色 + 焦点强调环 */
+.project-select,
+.editor-select,
+.field input,
+.modal input,
+.custom-instruction,
+.detail-notes,
+.ai-textarea,
+.detail-title-input {
+  background: var(--panel-2);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.project-select:focus,
+.editor-select:focus,
+.field input:focus,
+.modal input:focus,
+.custom-instruction:focus,
+.detail-notes:focus,
+.ai-textarea:focus,
+.detail-title-input:focus {
+  border-color: var(--border-accent);
+  background: var(--panel);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+input,
+textarea {
+  caret-color: var(--primary);
+}
+
+/* 按钮：克制的按压缩放与主按钮微投影 */
+.btn,
+.tab,
+.chip,
+.icon-btn {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.btn:active,
+.tab:active,
+.chip:active {
+  transform: translateY(0.5px);
+}
+.btn.primary {
+  background: var(--primary);
+  box-shadow: 0 1px 2px rgba(45, 91, 216, 0.28), 0 3px 8px -2px rgba(45, 91, 216, 0.25);
+}
+.btn.primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 2px 4px rgba(45, 91, 216, 0.3), 0 4px 12px -2px rgba(45, 91, 216, 0.28);
+}
+
+/* 行/卡片交互过渡 */
+.tree-row,
+.tl-card,
+.child,
+.tl-item {
+  transition: background-color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease,
+    transform 0.14s ease;
+}
+
+/* 进度条：Cobalt 微渐变，去掉生硬纯色 */
+.progress-bar > div {
+  background: linear-gradient(90deg, var(--primary), #5d7fe6);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.mini-progress > div {
+  background: #5d7fe6;
+  transition: width 0.3s ease;
+}
+
+/* 顶栏与面板的层次微调 */
+.topbar {
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
+  backdrop-filter: blur(8px);
+}
+.pane-left {
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+}
+
+/* 时间轴圆点：语义色实心 + 淡蓝描边留白，更精细 */
+.tl-dot {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px var(--accent);
+}
+.tl-dot.done {
+  background: var(--done);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px rgba(23, 138, 102, 0.5);
+}
+.tl-dot.writing {
+  background: var(--writing);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px rgba(45, 91, 216, 0.35);
+}
+.tl-dot.not_started {
+  background: var(--panel);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px rgba(141, 154, 177, 0.45);
+}
+
+/* 卡片级阴影收口：弹窗/下拉用大投影，普通卡片轻盈 */
+.modal {
+  box-shadow: var(--shadow-lg);
+}
+.ai-box,
+.ai-reply,
+.ai-status-card {
+  box-shadow: 0 1px 2px rgba(30, 45, 84, 0.04);
+}
+
+/* 写作台正文：纸张般的呼吸感 */
+.editor-textarea {
+  color: #222a38;
+  letter-spacing: 0.008em;
+}
+
+/* 页签激活态：轻投影提升 */
+.tab.active {
+  box-shadow: 0 1px 3px rgba(30, 45, 84, 0.1);
 }
 
 /* ---------- 提示 toast ---------- */
