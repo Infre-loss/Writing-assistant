@@ -137,6 +137,15 @@ function createWindow() {
               inlineBadge: document.querySelectorAll('.tree-row > .status-badge').length,
             };
           });
+          await safe('childrenList', () => {
+            const firstChildRow = document.querySelector('.children-list .child');
+            return {
+              rows: document.querySelectorAll('.children-list .child').length,
+              titleLine: !!firstChildRow && !!firstChildRow.querySelector('.child-title'),
+              statusBelow: !!firstChildRow && !!firstChildRow.querySelector('.child-meta .status-text'),
+              coloredPillLeft: !!firstChildRow && !!firstChildRow.querySelector('.status-badge'),
+            };
+          });
           await safe('gitPanel', async () => {
             const backupBtn = [...document.querySelectorAll('.topbar button')].find((b) => (b.textContent || '').includes('备份'));
             if (!backupBtn) return 'NO BTN';

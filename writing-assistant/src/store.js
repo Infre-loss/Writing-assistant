@@ -164,6 +164,12 @@ export const STATUS_META = {
   done: { label: '已完成', color: 'var(--done)' },
 };
 
+export const STATUS_LIGHT = {
+  not_started: 'var(--not-started-light)',
+  writing: 'var(--writing-light)',
+  done: 'var(--done-light)',
+};
+
 export function nextStatus(s) {
   if (s === 'not_started') return 'writing';
   if (s === 'writing') return 'done';

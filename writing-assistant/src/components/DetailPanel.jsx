@@ -1,5 +1,5 @@
 import React from 'react';
-import { STATUS_META } from '../store.js';
+import { STATUS_META, STATUS_LIGHT } from '../store.js';
 
 export default function DetailPanel({ node, onSelect, onUpdate, onAddChild, onDelete, onGoWrite }) {
   if (!node) {
@@ -117,19 +117,37 @@ export default function DetailPanel({ node, onSelect, onUpdate, onAddChild, onDe
 
       {node.children && node.children.length > 0 && (
         <div className="detail-section">
-          <div className="detail-label">子节点（点击跳转）</div>
+          <div className="detail-label">子节点（点击跳转到该章节）</div>
           <div className="children-list">
-            {node.children.map((c) => (
-              <div key={c.id} className="child" onClick={() => onSelect(c.id)}>
-                <span
-                  className="status-badge"
-                  style={{ background: (STATUS_META[c.status] || STATUS_META.not_started).color }}
-                >
-                  {(STATUS_META[c.status] || STATUS_META.not_started).label}
-                </span>
-                <span className="node-title">{c.title || '（未命名）'}</span>
-              </div>
-            ))}
+            {node.children.map((c) => {
+              const m = STATUS_META[c.status] || STATUS_META.not_started;
+              const l = STATUS_LIGHT[c.status] || STATUS_LIGHT.not_started;
+              const pct =
+                c.targetWords > 0
+                  ? Math.min(100, Math.round((c.currentWords / c.targetWords) * 100))
+                  : 0;
+              return (
+                <div key={c.id} className="child" onClick={() => onSelect(c.id)}>
+                  <div className="child-title">{c.title || '（未命名）'}</div>
+                  <div className="child-meta">
+                    <span className="status-text" style={{ background: l }}>
+                      <span className="status-dot" style={{ background: m.color }} />
+                      {m.label}
+                    </span>
+                    {c.targetWords > 0 && (
+                      <>
+                        <span className="words">
+                          {c.currentWords}/{c.targetWords}
+                        </span>
+                        <span className="mini-progress">
+                          <div style={{ width: pct + '%' }} />
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

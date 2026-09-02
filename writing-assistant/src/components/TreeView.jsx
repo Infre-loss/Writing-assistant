@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { STATUS_META, nextStatus, isDescendant } from '../store.js';
-
-const STATUS_LIGHT = {
-  not_started: 'var(--not-started-light)',
-  writing: 'var(--writing-light)',
-  done: 'var(--done-light)',
-};
+import { STATUS_META, STATUS_LIGHT, nextStatus, isDescendant } from '../store.js';
 
 export default function TreeView({
   tree,
