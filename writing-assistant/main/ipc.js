@@ -116,6 +116,13 @@ function registerIpc(ipcMain, ctx) {
     return true;
   });
 
+  // ---------- 窗口（庆祝动画全屏用） ----------
+  ipcMain.handle('window:fullscreen', (_e, flag) => {
+    const win = getMainWindow();
+    if (win && !win.isDestroyed()) win.setFullScreen(!!flag);
+    return true;
+  });
+
   // ---------- 检查更新 ----------
   ipcMain.handle('app:check-update', async () => {
     const result = await updater.checkUpdate(ctx.app.getVersion());

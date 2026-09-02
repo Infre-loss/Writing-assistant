@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 
 // 全屏烟花（canvas 2D）—— 温和亮度 · 蓝白黄紫
-// 构图：屏幕中央一朵大烟花缓缓升空、绽放（直径约屏宽 1/3），光点绽放后缓缓飘落；
-//       四周持续有小烟花绽放补位，尽量让天空不留空白。
-// finaleAtMs：结尾加一轮庆祝齐射；尊重系统“减少动态”则跳过
+// 构图：屏幕中央一朵大烟花快速升空、缓缓绽放，光点慢落；中央花下落结束时动画即结束。
+//       四周小烟花持续绽放补位（ambientOnly=true 时只播小烟花，用作卡片背景）。
+// 尊重系统“减少动态”则跳过动画
 const BLUES = ['#3f6df4', '#5b8bff', '#7fa6ff', '#9db9ff'];
 const PURPLES = ['#7b66ff', '#9b85ff', '#bca6ff'];
 const YELLOWS = ['#ffcf5e', '#ffe9a8'];
@@ -13,8 +13,10 @@ function pick(arr) {
   return arr[(Math.random() * arr.length) | 0];
 }
 
-export default function Fireworks({ finaleAtMs = 0 }) {
+export default function Fireworks({ ambientOnly = false, onFinish }) {
   const ref = useRef(null);
+  const finishRef = useRef(onFinish);
+  finishRef.current = onFinish;
 
   useEffect(() => {
     const cv = ref.current;
@@ -27,12 +29,13 @@ export default function Fireworks({ finaleAtMs = 0 }) {
     let H = 0;
     let raf = 0;
     let hero = null;
+    let heroActive = 0; // 中央大烟花仍在飘落的光点数
+    let heroBloomed = false;
+    let finished = false;
     let lastHeroAt = 0;
-    let nextHero = 1800;
+    let nextHero = 2000;
     let lastAmbientAt = 0;
-    let nextAmbient = 300;
-    let startT = 0;
-    let finaleDone = false;
+    let nextAmbient = 350;
     let alive = true;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
@@ -48,7 +51,8 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
     const rand = (a, b) => a + Math.random() * (b - a);
 
-    function bloom(x, y, count, speedMax, color, bright = true) {
+    // 普通绽放（小烟花/补位）—— 参数保持不变
+    function bloom(x, y, count, speedMax, color, bright = true, isHero = false, g = 0.032) {
       for (let i = 0; i < count; i++) {
         const ang = rand(0, Math.PI * 2);
         const speed = rand(speedMax * 0.18, speedMax);
@@ -64,18 +68,41 @@ export default function Fireworks({ finaleAtMs = 0 }) {
           size: rand(1.5, 3.2),
           color,
           bright,
+          isHero,
+          g,
         });
       }
     }
 
-    // 中央大烟花：reach 使花朵直径约屏宽 1/3
+    // 中央大烟花：粒子更多、绽放更慢、下落更缓
     function bigBloom(x, y) {
+      heroBloomed = true;
       const color = Math.random() < 0.55 ? pick(BLUES) : pick([...PURPLES, ...YELLOWS]);
       const reach = Math.max(120, W * 0.165);
-      bloom(x, y, Math.round(150 + reach * 0.5), reach * 0.075, color, true);
+      const count = Math.round(330 + reach * 0.7);
+      heroActive += count;
+      for (let i = 0; i < count; i++) {
+        const ang = rand(0, Math.PI * 2);
+        const speed = rand(reach * 0.012, reach * 0.078);
+        particles.push({
+          x,
+          y,
+          px: x,
+          py: y,
+          vx: Math.cos(ang) * speed,
+          vy: Math.sin(ang) * speed,
+          life: 1,
+          decay: rand(0.003, 0.0062), // 缓慢淡出
+          size: rand(1.6, 3.6),
+          color,
+          bright: true,
+          isHero: true,
+          g: 0.014, // 轻重力，慢慢下落
+        });
+      }
     }
 
-    // 周边小烟花（蓝白黄紫为主）
+    // 周边小烟花（保持不变）
     function smallBloom() {
       const roll = Math.random();
       const color =
@@ -92,7 +119,7 @@ export default function Fireworks({ finaleAtMs = 0 }) {
       bloom(x, y, Math.round(46 + reach * 0.9), reach * 0.085, color, Math.random() < 0.7);
     }
 
-    // 细碎流星光：缓缓下落填补空隙
+    // 流星光（保持不变）
     function drizzle() {
       const n = Math.round(rand(7, 14));
       for (let i = 0; i < n; i++) {
@@ -114,12 +141,20 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
     function launchHero() {
       hero = {
-        x: W * 0.5 + rand(-30, 30),
+        x: W * 0.5 + rand(-24, 24),
         y: H + 20,
-        vx: rand(-0.45, 0.45),
-        vy: -Math.max(5.6, H * 0.006),
-        targetY: H * (0.3 + Math.random() * 0.12),
+        vx: rand(-0.4, 0.4),
+        vy: -Math.max(8.2, H * 0.0086), // 上升快一些
+        targetY: H * 0.3 + Math.random() * H * 0.06,
       };
+    }
+
+    function finishShow() {
+      if (finished || !alive) return;
+      finished = true;
+      alive = false; // 停掉本实例
+      cancelAnimationFrame(raf);
+      if (finishRef.current) finishRef.current();
     }
 
     const tick = (t) => {
@@ -128,31 +163,9 @@ export default function Fireworks({ finaleAtMs = 0 }) {
       ctx.clearRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter';
 
-      if (!startT) startT = t;
-
-      // 结尾庆祝齐射
-      if (finaleAtMs > 0 && !finaleDone && t - startT > finaleAtMs) {
-        finaleDone = true;
-        for (let i = 0; i < 5; i++) {
-          setTimeout(() => {
-            if (!alive) return;
-            const reach = Math.max(90, W * 0.1);
-            bloom(
-              W * 0.5 + (Math.random() - 0.5) * W * 0.7,
-              H * (0.15 + Math.random() * 0.3),
-              90,
-              reach * 0.08,
-              pick(BLUES),
-              true
-            );
-          }, i * 200);
-        }
-      }
-
-      // 中央大烟花周期
-      if (t - lastHeroAt > nextHero) {
+      // 中央大烟花周期（全屏秀阶段才放）
+      if (!ambientOnly && !heroBloomed && t - lastHeroAt > nextHero) {
         launchHero();
-        nextHero = rand(3400, 4600);
         lastHeroAt = t;
       }
 
@@ -160,18 +173,17 @@ export default function Fireworks({ finaleAtMs = 0 }) {
       if (t - lastAmbientAt > nextAmbient) {
         smallBloom();
         if (Math.random() < 0.3) smallBloom();
-        if (Math.random() < 0.35) drizzle();
-        nextAmbient = rand(420, 800);
+        if (Math.random() < 0.4) drizzle();
+        nextAmbient = ambientOnly ? rand(600, 1000) : rand(380, 720);
         lastAmbientAt = t;
       }
 
-      // 大烟花缓缓上升
+      // 大烟花上升（快一些）
       if (hero) {
         const hk = hero;
         hk.x += hk.vx;
         hk.y += hk.vy;
-        hk.vy *= 0.9995;
-        // 上升亮尾
+        hk.vy *= 0.9992;
         ctx.strokeStyle = 'rgba(255,255,255,0.7)';
         ctx.lineWidth = 2.2;
         ctx.lineCap = 'round';
@@ -191,16 +203,17 @@ export default function Fireworks({ finaleAtMs = 0 }) {
         }
       }
 
-      // 粒子：光点缓缓飘落、淡出
+      // 粒子
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.vy += 0.032;
+        p.vy += p.g;
         p.x += p.vx;
         p.y += p.vy;
         p.vx *= 0.987;
         p.vy *= 0.987;
         p.life -= p.decay;
         if (p.life <= 0 || p.y > H + 40) {
+          if (p.isHero) heroActive -= 1;
           particles.splice(i, 1);
           continue;
         }
@@ -226,17 +239,22 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
-      if (particles.length > 2400) particles.splice(0, particles.length - 2400);
+      if (particles.length > 2600) particles.splice(0, particles.length - 2600);
+
+      // 中央大烟花的飘落结束 → 动画结束
+      if (!ambientOnly && heroBloomed && !hero && heroActive <= 0) {
+        finishShow();
+      }
     };
 
-    // 开场小烟花，避免开场太空
+    // 开场小烟花
     setTimeout(() => {
       if (!alive) return;
       smallBloom();
       setTimeout(() => {
         if (alive) smallBloom();
-      }, 280);
-    }, 180);
+      }, 260);
+    }, 160);
 
     raf = requestAnimationFrame(tick);
     return () => {
@@ -244,7 +262,7 @@ export default function Fireworks({ finaleAtMs = 0 }) {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [finaleAtMs]);
+  }, [ambientOnly]);
 
   return <canvas ref={ref} className="fireworks-canvas" />;
 }

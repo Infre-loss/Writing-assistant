@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('api', {
   importDocx: (id, nodeId) => ipcRenderer.invoke('import:docx', { id, nodeId }),
   // 剪贴板
   copyText: (text) => ipcRenderer.invoke('clipboard:write', text),
+  // 窗口全屏（庆祝动画）
+  setFullScreen: (flag) => ipcRenderer.invoke('window:fullscreen', flag),
   // 检查更新
   checkUpdate: () => ipcRenderer.invoke('app:check-update'),
   openUrl: (url) => ipcRenderer.invoke('app:open-url', url),
