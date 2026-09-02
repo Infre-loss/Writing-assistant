@@ -1,8 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Fireworks from './Fireworks.jsx';
 
-// 庆祝弹窗：chapter（章节达标）/ milestone（总字数里程碑）/ book（全书完成 + 烟花）
+// 庆祝弹窗：
+// - chapter 章节达标 / milestone 字数里程碑：直接弹卡片
+// - book 全书完成：先全屏盛大烟花秀（可跳过），播完再弹祝贺卡片
+const BOOK_SHOW_MS = 6500; // 烟花秀时长
+
 export default function CelebrationModal({ kind, node, milestoneText, onClose, onPrimary, onPrimaryLabel }) {
+  const [bookPhase, setBookPhase] = useState('fireworks'); // 'fireworks' | 'card'
+
+  useEffect(() => {
+    if (kind !== 'book') return undefined;
+    // 尊重系统“减少动态”：不播烟花直接出卡片
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setBookPhase('card');
+      return undefined;
+    }
+    const t = setTimeout(() => setBookPhase('card'), BOOK_SHOW_MS);
+    return () => clearTimeout(t);
+  }, [kind]);
+
+  // ---- 全书完成：烟花秀阶段（全屏） ----
+  if (kind === 'book' && bookPhase === 'fireworks') {
+    return (
+      <div className="cheer-show">
+        <Fireworks finaleAtMs={BOOK_SHOW_MS - 800} />
+        <button
+          className="cheer-skip"
+          onClick={() => setBookPhase('card')}
+          title="跳过烟花，直接查看祝贺"
+        >
+          跳过 →
+        </button>
+      </div>
+    );
+  }
+
+  // ---- 卡片阶段（所有类型） ----
   return (
     <div
       className="modal-mask cheer-mask"

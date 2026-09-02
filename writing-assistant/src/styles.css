@@ -1351,6 +1351,42 @@ textarea {
 .cheer-mask {
   z-index: 300;
 }
+/* 全书完成 · 烟花秀全屏舞台（夜空渐变） */
+.cheer-show {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #232a55 0%, #141a3d 46%, #0a0f24 100%);
+  overflow: hidden;
+  animation: showFade 0.6s ease both;
+}
+@keyframes showFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.cheer-skip {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  padding: 7px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12.5px;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s ease, color 0.15s ease;
+  z-index: 2;
+}
+.cheer-skip:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
 .fireworks-canvas {
   position: fixed;
   inset: 0;

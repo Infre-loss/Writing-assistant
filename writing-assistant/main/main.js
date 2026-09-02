@@ -49,6 +49,20 @@ function createWindow() {
     mainWindow.webContents.once('did-finish-load', async () => {
       log('did-finish-load at ' + new Date().toISOString());
       await new Promise((r) => setTimeout(r, Number(process.env.DS_ASSIST_SHOT_DELAY) || 2500));
+      // 早期抓拍：全书完成烟花秀阶段（弹窗卡片出现前）
+      try {
+        const inShow = await mainWindow.webContents.executeJavaScript(
+          `!!document.querySelector('.cheer-show')`
+        );
+        if (inShow) {
+          const cname = process.env.DS_CHEER_NAME || 'start';
+          const im0 = await mainWindow.webContents.capturePage();
+          fs.writeFileSync(path.join(__dirname, '..', 'shot-' + cname + '-fireworks.png'), im0.toPNG());
+          log('fireworks early shot saved: ' + cname);
+        }
+      } catch (e) {
+        log('early shot failed: ' + e.message);
+      }
       try {
         log('dump: starting');
         // 看门狗：防止转储卡死导致测试挂起
@@ -188,17 +202,35 @@ function createWindow() {
         })()`);
         clearTimeout(watchdog);
         log('DOMDUMP ' + JSON.stringify(dump));
-        // 若当前有庆祝弹窗打开，先截图再关闭（供用户查看效果）
+        // 若当前有庆祝内容，先截图再关闭（供用户查看效果）
+        // 全书完成=烟花秀阶段（无卡片）时，先拍烟花帧，点「跳过」再拍祝贺卡片
         try {
-          const hasCheer = await mainWindow.webContents.executeJavaScript(
-            `!!document.querySelector('.cheer .cheer-title')`
-          );
-          if (hasCheer) {
-            const cname = process.env.DS_CHEER_NAME || 'start';
+          const state = await mainWindow.webContents.executeJavaScript(`(() => ({
+            card: !!document.querySelector('.cheer .cheer-title'),
+            show: !!document.querySelector('.cheer-show'),
+          }))()`);
+          const cname = process.env.DS_CHEER_NAME || 'start';
+          if (state.card) {
             const im = await mainWindow.webContents.capturePage();
             fs.writeFileSync(path.join(__dirname, '..', 'shot-cheer-' + cname + '.png'), im.toPNG());
-            log('cheer shot saved: ' + cname);
-            // 点击第一个非主按钮关闭弹窗，避免挡住后续截图
+            log('cheer card shot saved: ' + cname);
+            await mainWindow.webContents.executeJavaScript(
+              `(() => { const b = [...document.querySelectorAll('.cheer-actions .btn')].find(x => !x.classList.contains('primary')); if (b) b.click(); })()`
+            );
+            await new Promise((r) => setTimeout(r, 400));
+          } else if (state.show) {
+            // 烟花秀画面
+            const im1 = await mainWindow.webContents.capturePage();
+            fs.writeFileSync(path.join(__dirname, '..', 'shot-' + cname + '-fireworks.png'), im1.toPNG());
+            log('fireworks shot saved: ' + cname);
+            // 点跳过 → 出卡片
+            await mainWindow.webContents.executeJavaScript(
+              `(() => { const b = document.querySelector('.cheer-skip'); if (b) b.click(); })()`
+            );
+            await new Promise((r) => setTimeout(r, 900));
+            const im2 = await mainWindow.webContents.capturePage();
+            fs.writeFileSync(path.join(__dirname, '..', 'shot-cheer-' + cname + '.png'), im2.toPNG());
+            log('cheer card shot saved (after skip): ' + cname);
             await mainWindow.webContents.executeJavaScript(
               `(() => { const b = [...document.querySelectorAll('.cheer-actions .btn')].find(x => !x.classList.contains('primary')); if (b) b.click(); })()`
             );
