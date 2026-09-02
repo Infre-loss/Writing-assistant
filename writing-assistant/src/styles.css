@@ -1351,15 +1351,14 @@ textarea {
 .cheer-mask {
   z-index: 300;
 }
-/* 全书完成 · 烟花秀全屏舞台（夜空渐变） */
+/* 全书完成 · 烟花秀全屏舞台（纯黑夜幕，衬托烟花最亮） */
 .cheer-show {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background:
-    radial-gradient(120% 90% at 50% 0%, #232a55 0%, #141a3d 46%, #0a0f24 100%);
+  background: #000000;
   overflow: hidden;
-  animation: showFade 0.6s ease both;
+  animation: showFade 0.5s ease both;
 }
 @keyframes showFade {
   from {

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
-// 全屏盛大烟花（canvas 2D）—— 用于「全书完成」庆祝的前奏秀
-// finaleAtMs：在指定毫秒后追加一波齐射高潮（用于弹窗出现前的收尾）
-// 尊重系统“减少动态”：不启动动画
+// 全屏震撼烟花（canvas 2D）—— 黑色夜幕，成批同时绽放
+// 特点：每次齐射 10+ 发、爆炸半径大、光点更多更亮
+// finaleAtMs：结尾再追加一轮更大齐射；尊重系统“减少动态”则跳过
 const COLORS = [
-  '#2d5bd8', '#5d7fe6', '#8fb1f2', '#ffd166', '#ffb347',
-  '#f283b6', '#ff6b9d', '#7b61ff', '#35c2a4', '#7ef0c8', '#f8e16c',
+  '#4d8dff', '#6fa8ff', '#9dc1ff', '#ffe066', '#ffd25e',
+  '#ff9a5e', '#ff6b9d', '#ff4f7e', '#9d7bff', '#b78cff',
+  '#41e0c0', '#7ef0c8', '#ffffff',
 ];
 
 export default function Fireworks({ finaleAtMs = 0 }) {
@@ -18,12 +19,11 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
     const ctx = cv.getContext('2d');
     const particles = [];
-    const rockets = [];
     let W = 0;
     let H = 0;
     let raf = 0;
     let last = 0;
-    let nextBurst = 400;
+    let nextVolley = 500;
     let startT = 0;
     let finaleDone = false;
     let alive = true;
@@ -40,16 +40,15 @@ export default function Fireworks({ finaleAtMs = 0 }) {
     window.addEventListener('resize', resize);
 
     const rand = (a, b) => a + Math.random() * (b - a);
+    const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 
-    // 烟花绽放（含闪亮光点 + 光晕拖尾）
+    // 一次爆炸：大半径 + 大量光点
     function burst(cx, cy, scale = 1) {
-      const color = COLORS[(Math.random() * COLORS.length) | 0];
-      const color2 = COLORS[(Math.random() * COLORS.length) | 0];
-      const n = Math.round(rand(110, 200) * scale);
+      const color = pick(COLORS);
+      const n = Math.round(rand(160, 280) * scale);
       for (let i = 0; i < n; i++) {
         const ang = rand(0, Math.PI * 2);
-        const speed = rand(1.2, 8.4 * scale);
-        const useSecond = i % 3 === 0;
+        const speed = rand(2, 13.5 * scale); // 大半径
         particles.push({
           x: cx,
           y: cy,
@@ -58,49 +57,26 @@ export default function Fireworks({ finaleAtMs = 0 }) {
           vx: Math.cos(ang) * speed,
           vy: Math.sin(ang) * speed,
           life: 1,
-          decay: rand(0.006, 0.016),
-          size: rand(1.6, 3.6),
-          color: useSecond ? color2 : color,
+          decay: rand(0.004, 0.011), // 更长的绽放时间
+          size: rand(2.2, 4.6),
+          color,
         });
       }
     }
 
-    // 升空火箭：拖着光尾飞上去，到达高空后爆炸
-    function rocket() {
-      const x = rand(W * 0.2, W * 0.8);
-      rockets.push({
-        x,
-        y: H + 10,
-        targetY: rand(H * 0.16, H * 0.42),
-        vx: rand(-0.6, 0.6),
-        vy: rand(-11, -8.4),
-        color: '#ffe9a8',
-      });
-    }
-
-    function salvo(count, scale = 1, delay = 150) {
-      for (let i = 0; i < count; i++) {
-        setTimeout(() => {
-          if (!alive) return;
-          burst(rand(W * 0.15, W * 0.85), rand(H * 0.12, H * 0.5), scale);
-        }, i * delay);
+    // 齐射：count 发烟花在天空中同时绽放（铺满屏幕、可重叠）
+    function volley(count, scale = 1) {
+      const total = Math.max(1, Math.round(count));
+      for (let i = 0; i < total; i++) {
+        const x = W * 0.5 + (Math.random() - 0.5) * W * 1.05;
+        const y = H * (0.06 + Math.random() * 0.42);
+        burst(x, y, rand(0.75, 1.3) * scale);
       }
     }
 
-    function finale() {
-      finaleDone = true;
-      const spots = [];
-      for (let i = 0; i < 6; i++) spots.push([rand(W * 0.12, W * 0.88), rand(H * 0.1, H * 0.55)]);
-      spots.forEach(([x, y], i) => {
-        setTimeout(() => {
-          if (!alive) return;
-          burst(x, y, 1.25);
-          if (i % 2 === 0) burst(x + rand(-40, 40), y + rand(-30, 30), 0.8);
-        }, i * 140);
-      });
-    }
-
-    salvo(5, 1, 160); // 开场齐射
+    // 开场：先炸一轮大的
+    volley(14, 1.05);
+    last = 0;
 
     const tick = (t) => {
       if (!alive) return;
@@ -110,65 +86,54 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
       if (!startT) startT = t;
 
-      // 高潮齐射（弹窗出现前）
-      if (finaleAtMs > 0 && !finaleDone && t - startT > finaleAtMs) finale();
+      // 结尾高潮：更大的一轮（弹窗出现前）
+      if (finaleAtMs > 0 && !finaleDone && t - startT > finaleAtMs) {
+        finaleDone = true;
+        volley(18, 1.25);
+      }
 
-      // 持续放烟花 + 升空火箭
-      if (t - last > nextBurst) {
-        const r = Math.random();
-        if (r < 0.38) rocket();
-        else burst(rand(W * 0.15, W * 0.85), rand(H * 0.12, H * 0.5), rand(0.8, 1.15));
-        nextBurst = rand(600, 1200);
+      // 每隔约 1 秒，再来一轮 10~16 发同时绽放
+      if (t - last > nextVolley) {
+        volley(rand(10, 16));
+        nextVolley = rand(900, 1500);
         last = t;
       }
 
-      // 升空火箭
-      for (let i = rockets.length - 1; i >= 0; i--) {
-        const rk = rockets[i];
-        rk.x += rk.vx;
-        rk.y += rk.vy;
-        rk.vy += 0.16;
-        if (rk.y <= rk.targetY) {
-          burst(rk.x, rk.y, 1.1);
-          rockets.splice(i, 1);
-          continue;
-        }
-        ctx.strokeStyle = rk.color;
-        ctx.globalAlpha = 0.95;
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(rk.x, rk.y);
-        ctx.lineTo(rk.x - rk.vx * 3, rk.y - rk.vy * 3 + 6);
-        ctx.stroke();
-      }
-
-      // 爆炸粒子
+      // 粒子：亮核 + 粗光拖尾 + 外圈光晕
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.vy += 0.05;
+        p.vy += 0.028; // 轻重力，绽放更开
         p.x += p.vx;
         p.y += p.vy;
-        p.vx *= 0.984;
-        p.vy *= 0.984;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
         p.life -= p.decay;
         if (p.life <= 0) {
           particles.splice(i, 1);
           continue;
         }
-        const alpha = Math.max(0, Math.min(1, p.life));
-        // 光晕拖尾
+        const a = Math.max(0, Math.min(1, p.life));
+        // 外圈光晕（让每颗点都发光发亮）
         ctx.strokeStyle = p.color;
-        ctx.globalAlpha = alpha * 0.9;
+        ctx.globalAlpha = a * 0.28;
+        ctx.lineWidth = p.size * 3.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(p.px, p.py);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        // 主体亮尾
+        ctx.globalAlpha = a * 0.95;
         ctx.lineWidth = p.size;
         ctx.beginPath();
         ctx.moveTo(p.px, p.py);
         ctx.lineTo(p.x, p.y);
         ctx.stroke();
         // 白色亮核
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.globalAlpha = alpha * 0.9;
+        ctx.fillStyle = 'rgba(255,255,255,0.98)';
+        ctx.globalAlpha = a;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * 0.62, 0, Math.PI * 2);
         ctx.fill();
         p.px = p.x;
         p.py = p.y;
@@ -176,7 +141,7 @@ export default function Fireworks({ finaleAtMs = 0 }) {
 
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
-      if (particles.length > 1600) particles.splice(0, particles.length - 1600);
+      if (particles.length > 6000) particles.splice(0, particles.length - 6000);
     };
 
     raf = requestAnimationFrame(tick);
