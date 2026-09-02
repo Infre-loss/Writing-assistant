@@ -135,11 +135,13 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
       const n = 22;
       for (let i = 0; i < n; i++) {
         const ang = (i / n) * Math.PI * 2 + rand(-0.2, 0.2);
+        const sx = cx + Math.cos(ang) * r;
+        const sy = cy + Math.sin(ang) * r;
         particles.push({
-          x: cx + Math.cos(ang) * r,
-          y: cy + Math.sin(ang) * r,
-          px: 0,
-          py: 0,
+          x: sx,
+          y: sy,
+          px: sx,
+          py: sy,
           vx: -Math.cos(ang) * rand(0.5, 1.6),
           vy: rand(0.25, 1.2),
           life: 1,
@@ -157,11 +159,13 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
     function drizzle() {
       const n = Math.round(rand(7, 14));
       for (let i = 0; i < n; i++) {
+        const sx = rand(0, W);
+        const sy = rand(-20, H * 0.25);
         particles.push({
-          x: rand(0, W),
-          y: rand(-20, H * 0.25),
-          px: 0,
-          py: 0,
+          x: sx,
+          y: sy,
+          px: sx,
+          py: sy,
           vx: rand(-0.25, 0.25),
           vy: rand(0.55, 1.5),
           life: rand(0.7, 1),
