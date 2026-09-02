@@ -5,6 +5,7 @@ const storage = require('./storage');
 const exporter = require('./export');
 const deepseek = require('./deepseek');
 const importer = require('./import');
+const updater = require('./updater');
 
 // 在大纲树中按 id 查找节点
 function findNodeInTree(nodes, id) {
@@ -113,6 +114,21 @@ function registerIpc(ipcMain, ctx) {
   ipcMain.handle('clipboard:write', (_e, text) => {
     require('electron').clipboard.writeText(String(text || ''));
     return true;
+  });
+
+  // ---------- 检查更新 ----------
+  ipcMain.handle('app:check-update', async () => {
+    const result = await updater.checkUpdate(ctx.app.getVersion());
+    return result;
+  });
+
+  ipcMain.handle('app:open-url', (_e, url) => {
+    const u = String(url || '').trim();
+    if (/^https?:\/\//i.test(u)) {
+      require('electron').shell.openExternal(u);
+      return true;
+    }
+    return false;
   });
 
   // ---------- AI 助手 ----------

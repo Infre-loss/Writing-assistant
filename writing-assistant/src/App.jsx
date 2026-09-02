@@ -6,6 +6,7 @@ import TimelineView from './components/TimelineView.jsx';
 import AIView from './components/AIView.jsx';
 import EditorView from './components/EditorView.jsx';
 import Modal from './components/Modal.jsx';
+import UpdatePanel from './components/UpdatePanel.jsx';
 import {
   makeNode,
   addChild,
@@ -25,6 +26,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [toast, setToast] = useState(null);
   const [modal, setModal] = useState(null); // {mode:'create'} | {mode:'rename', id, name}
+  const [showUpdate, setShowUpdate] = useState(false);
   const saveTimer = useRef(null);
   const toastTimer = useRef(null);
 
@@ -45,6 +47,19 @@ export default function App() {
         showToast('读取本地数据失败: ' + e.message);
       }
     })();
+  }, []);
+
+  // 启动后静默检查更新：发现新版本才弹窗
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        const r = await window.api.checkUpdate();
+        if (r && r.ok && r.newer) setShowUpdate(true);
+      } catch (e) {
+        /* 静默失败，用户可手动点「检查更新」 */
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
   }, []);
 
   // 切换作品：加载大纲
@@ -183,6 +198,7 @@ export default function App() {
         onDeleteProject={handleDeleteProject}
         onExport={handleExport}
         onSetView={setView}
+        onCheckUpdate={() => setShowUpdate(true)}
       />
 
       <div className="content">
@@ -262,6 +278,8 @@ export default function App() {
           }}
         />
       )}
+
+      {showUpdate && <UpdatePanel onClose={() => setShowUpdate(false)} />}
 
       {toast && <div className="toast">{toast}</div>}
     </div>

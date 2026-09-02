@@ -11,6 +11,7 @@ export default function TopBar({
   onDeleteProject,
   onExport,
   onSetView,
+  onCheckUpdate,
 }) {
   const activeName = projects.find((p) => p.id === activeId)?.name || '未选择作品';
 
@@ -104,6 +105,9 @@ export default function TopBar({
             </button>
           </>
         )}
+        <button className="btn sm" onClick={onCheckUpdate} title="检查软件更新">
+          ⤓ 检查更新
+        </button>
       </div>
     </div>
   );

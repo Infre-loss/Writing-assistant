@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('api', {
   importDocx: (id, nodeId) => ipcRenderer.invoke('import:docx', { id, nodeId }),
   // 剪贴板
   copyText: (text) => ipcRenderer.invoke('clipboard:write', text),
+  // 检查更新
+  checkUpdate: () => ipcRenderer.invoke('app:check-update'),
+  openUrl: (url) => ipcRenderer.invoke('app:open-url', url),
   // AI
   aiDetect: () => ipcRenderer.invoke('ai:detect'),
   aiStatus: () => ipcRenderer.invoke('ai:status'),

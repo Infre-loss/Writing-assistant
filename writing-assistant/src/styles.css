@@ -1082,6 +1082,57 @@ button {
   font-size: 42px;
 }
 
+/* ---------- 更新弹窗 ---------- */
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.modal-head h3 {
+  margin-bottom: 0;
+}
+.upd-loading {
+  padding: 22px 4px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+.upd-body {
+  font-size: 13.5px;
+  line-height: 2;
+  color: var(--text);
+}
+.upd-body p {
+  margin: 2px 0;
+}
+.upd-ok {
+  color: var(--done);
+}
+.upd-err {
+  color: var(--danger);
+}
+.upd-new {
+  color: var(--primary);
+}
+.upd-note {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.8;
+  margin: 8px 0 0;
+  user-select: text;
+  max-height: 220px;
+  overflow: auto;
+}
+.upd-tip {
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
 /* ---------- 提示 toast ---------- */
 .toast {
   position: fixed;

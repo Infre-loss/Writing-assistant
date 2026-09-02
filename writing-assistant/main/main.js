@@ -67,6 +67,10 @@ function createWindow() {
           await safe('hasApi', () => !!window.api);
           await safe('treeRows', () => document.querySelectorAll('.tree-row').length);
           await safe('tabs', () => [...document.querySelectorAll('.tab')].map(t => t.textContent));
+          await safe('updateModalText', () => {
+            const el = document.querySelector('.modal .upd-body') || document.querySelector('.upd-loading');
+            return el ? el.innerText.slice(0, 160).replace(/\\n/g, ' ') : '';
+          });
           await safe('projectName', () => document.querySelector('.project-select option:checked')?.textContent || null);
           const clickTab = async (name) => {
             const btns = [...document.querySelectorAll('.tab')];
