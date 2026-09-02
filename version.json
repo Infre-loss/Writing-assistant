@@ -1,0 +1,5 @@
+{
+  "version": "0.2.0",
+  "note": "0.2.0 更新内容：\n1. 新增写作台：直接在软件内创作正文，实时字数，支持 Word(.docx) 导入/导出\n2. UI 全面精修：全新配色与界面细节\n3. 鼓励彩蛋：章节达标弹窗、总字数里程碑、全书完成全屏烟花庆祝\n4. AI 润色支持长文、修复抓取不完整\n5. 新增检查更新",
+  "downloadUrl": "https://github.com/Infre-loss/Writing-assistant/raw/master/downloads/0.2.0/writing-assistant-setup-0.2.0.exe"
+}
