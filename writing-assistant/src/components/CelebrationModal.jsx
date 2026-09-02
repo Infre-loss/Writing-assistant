@@ -1,6 +1,7 @@
 import React from 'react';
+import Fireworks from './Fireworks.jsx';
 
-// 庆祝弹窗：三种变体 chapter（章节达标）/ milestone（总字数里程碑）/ book（全书完成）
+// 庆祝弹窗：chapter（章节达标）/ milestone（总字数里程碑）/ book（全书完成 + 烟花）
 export default function CelebrationModal({ kind, node, milestoneText, onClose, onPrimary, onPrimaryLabel }) {
   return (
     <div
@@ -9,10 +10,11 @@ export default function CelebrationModal({ kind, node, milestoneText, onClose, o
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      {kind === 'book' && <Fireworks />}
       <div className={'cheer ' + (kind === 'book' ? 'cheer-book' : '')}>
         {kind === 'chapter' && (
           <>
-            <div className="cheer-emoji">🎉</div>
+            <div className="cheer-emoji">😉</div>
             <div className="cheer-title">
               你已经写了 <b>{node ? node.targetWords : 0}</b> 字了！
               <br />
@@ -21,10 +23,10 @@ export default function CelebrationModal({ kind, node, milestoneText, onClose, o
             <div className="cheer-sub">{node ? node.title : ''}</div>
             <div className="cheer-actions">
               <button className="btn" onClick={onClose}>
-                🍵 休息一下
+                休息一下
               </button>
               <button className="btn primary" onClick={onPrimary}>
-                ✍️ 继续写作
+                继续写作
               </button>
             </div>
           </>
@@ -48,7 +50,6 @@ export default function CelebrationModal({ kind, node, milestoneText, onClose, o
 
         {kind === 'book' && (
           <>
-            <div className="cheer-emoji">📚</div>
             <div className="cheer-title">全书写完了！</div>
             <div className="cheer-sub">
               从第一个字到这里，你把一个世界完整地讲完了。
@@ -60,7 +61,7 @@ export default function CelebrationModal({ kind, node, milestoneText, onClose, o
                 收起来
               </button>
               <button className="btn primary" onClick={onPrimary}>
-                ⬇ 导出全书为 Word
+                导出全书为 Word
               </button>
             </div>
           </>

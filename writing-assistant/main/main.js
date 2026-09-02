@@ -126,10 +126,7 @@ function createWindow() {
             const result = cheerTitle
               ? cheerTitle.innerText.replace(/\s+/g, ' ').slice(0, 60)
               : 'NO CHEER';
-            // 关掉弹窗，恢复现场
-            const closeBtn = [...document.querySelectorAll('.cheer-actions button')].find((b) => b.textContent.includes('休息'));
-            if (closeBtn) closeBtn.click();
-            await new Promise((r) => setTimeout(r, 400));
+            // 不在此关闭（让后置截图能拍到弹窗），由主进程统一关闭
             return { title: result, chapter: label, buttons: btns };
           });
           await safe('timelineLayout', async () => {
@@ -191,6 +188,25 @@ function createWindow() {
         })()`);
         clearTimeout(watchdog);
         log('DOMDUMP ' + JSON.stringify(dump));
+        // 若当前有庆祝弹窗打开，先截图再关闭（供用户查看效果）
+        try {
+          const hasCheer = await mainWindow.webContents.executeJavaScript(
+            `!!document.querySelector('.cheer .cheer-title')`
+          );
+          if (hasCheer) {
+            const cname = process.env.DS_CHEER_NAME || 'start';
+            const im = await mainWindow.webContents.capturePage();
+            fs.writeFileSync(path.join(__dirname, '..', 'shot-cheer-' + cname + '.png'), im.toPNG());
+            log('cheer shot saved: ' + cname);
+            // 点击第一个非主按钮关闭弹窗，避免挡住后续截图
+            await mainWindow.webContents.executeJavaScript(
+              `(() => { const b = [...document.querySelectorAll('.cheer-actions .btn')].find(x => !x.classList.contains('primary')); if (b) b.click(); })()`
+            );
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        } catch (e) {
+          log('cheer capture failed: ' + e.message);
+        }
         log('dump: done, taking screenshot');
         const img = await mainWindow.webContents.capturePage();
         fs.writeFileSync(path.join(__dirname, '..', 'shot.png'), img.toPNG());

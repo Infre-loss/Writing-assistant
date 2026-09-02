@@ -1351,7 +1351,17 @@ textarea {
 .cheer-mask {
   z-index: 300;
 }
+.fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
 .cheer {
+  position: relative;
+  z-index: 1;
   width: 370px;
   max-width: 92vw;
   padding: 30px 26px 26px;
