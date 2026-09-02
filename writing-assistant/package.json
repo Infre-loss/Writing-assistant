@@ -1,6 +1,6 @@
 {
   "name": "writing-assistant",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "辅助写作软件：大纲 / 进度 / AI 润色（数据本地优先）",
   "author": "写作助手团队",
   "main": "main/main.js",

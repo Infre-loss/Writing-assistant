@@ -17,3 +17,9 @@ writing-assistant/.debug-userdata/
 writing-assistant/.test-profile/
 writing-assistant/build-icon.png
 writing-assistant/shot*.png
+
+# 发布产物与构建日志
+发布/
+writing-assistant/pack-log.txt
+writing-assistant/pack-log2.txt
+writing-assistant/build-log.txt
