@@ -102,7 +102,7 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
       }
     }
 
-    // 周边小烟花（保持不变）
+    // 周边小烟花：更密集、铺得更开
     function smallBloom() {
       const roll = Math.random();
       const color =
@@ -113,10 +113,44 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
             : roll < 0.85
               ? pick(YELLOWS)
               : pick(WHITES);
-      const reach = Math.max(40, W * 0.05) * rand(0.8, 1.3);
-      const x = W * 0.5 + (Math.random() - 0.5) * W * 0.96;
-      const y = H * (0.08 + Math.random() * 0.52);
-      bloom(x, y, Math.round(46 + reach * 0.9), reach * 0.085, color, Math.random() < 0.7);
+      const reach = Math.max(42, W * 0.05) * rand(0.75, 1.4);
+      const x = W * 0.5 + (Math.random() - 0.5) * W * 1.04;
+      const y = H * (0.05 + Math.random() * 0.66);
+      bloom(
+        x,
+        y,
+        Math.round((46 + reach * 0.95) * rand(0.9, 1.5)),
+        reach * 0.085,
+        color,
+        Math.random() < 0.7
+      );
+    }
+
+    // 微火花环：填补大片空隙的小点缀
+    function sparkleRing() {
+      const color = Math.random() < 0.5 ? pick(WHITES) : pick(BLUES);
+      const cx = W * 0.5 + (Math.random() - 0.5) * W * 0.9;
+      const cy = H * (0.1 + Math.random() * 0.55);
+      const r = Math.max(18, W * 0.02) * rand(0.8, 1.6);
+      const n = 22;
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * Math.PI * 2 + rand(-0.2, 0.2);
+        particles.push({
+          x: cx + Math.cos(ang) * r,
+          y: cy + Math.sin(ang) * r,
+          px: 0,
+          py: 0,
+          vx: -Math.cos(ang) * rand(0.5, 1.6),
+          vy: rand(0.25, 1.2),
+          life: 1,
+          decay: rand(0.01, 0.02),
+          size: rand(0.8, 1.8),
+          color,
+          bright: false,
+          isHero: false,
+          g: 0.03,
+        });
+      }
     }
 
     // 流星光（保持不变）
@@ -170,12 +204,13 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
         launchHero();
       }
 
-      // 周边小烟花 + 流星光：持续补位
+      // 周边烟花：更密集地持续补位（每轮 1~3 朵 + 微火花环 + 流星光）
       if (t - lastAmbientAt > nextAmbient) {
-        smallBloom();
-        if (Math.random() < 0.3) smallBloom();
-        if (Math.random() < 0.4) drizzle();
-        nextAmbient = ambientOnly ? rand(600, 1000) : rand(380, 720);
+        const times = 1 + (Math.random() < 0.6 ? 1 : 0) + (Math.random() < 0.3 ? 1 : 0);
+        for (let i = 0; i < times; i++) smallBloom();
+        if (Math.random() < 0.5) sparkleRing();
+        if (Math.random() < 0.55) drizzle();
+        nextAmbient = ambientOnly ? rand(450, 850) : rand(180, 360);
         lastAmbientAt = t;
       }
 
@@ -241,7 +276,7 @@ export default function Fireworks({ ambientOnly = false, onFinish }) {
 
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
-      if (particles.length > 2600) particles.splice(0, particles.length - 2600);
+      if (particles.length > 3400) particles.splice(0, particles.length - 3400);
 
       // 中央大烟花的飘落结束 → 动画结束
       if (!ambientOnly && heroBloomed && !hero && heroActive <= 0) {
